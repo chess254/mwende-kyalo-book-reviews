@@ -1,65 +1,139 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+
+interface Review {
+  ID: number;
+  title: string;
+  excerpt: string;
+  date: string;
+  tags: Record<string, { name: string }>;
+  attachments: Record<string, { URL: string }>;
+}
+
+interface ApiResponse {
+  found: number;
+  posts: Review[];
+}
 
 export default function Home() {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [filter, setFilter] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      setLoading(true);
+      const res = await fetch(`/api/reviews?page=${page}`);
+      const data: ApiResponse = await res.json();
+      setReviews(data.posts);
+      setTotalPages(Math.ceil(data.found / 100));
+      setLoading(false);
+    };
+    fetchReviews();
+  }, [page]);
+
+  const filteredReviews = reviews.filter(review =>
+    Object.values(review.tags).some(tag => tag.name.toLowerCase().includes(filter.toLowerCase()))
+  );
+
+  const getCoverImage = (review: Review) => {
+    const attachKeys = Object.keys(review.attachments);
+    return attachKeys.length > 0 ? review.attachments[attachKeys[0]].URL : '/placeholder.jpg'; // Fallback image
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
+      <div className="container mx-auto px-4 py-8">
+        <header className="text-center mb-12">
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Mwende Kyalo Book Reviews</h1>
+          <p className="text-xl" style={{ color: 'var(--text-muted)' }}>Discover remarkable stories from across the continent</p>
+        </header>
+        <div className="mb-8 max-w-md mx-auto">
+          <input
+            type="text"
+            placeholder="Filter by tag (e.g., #Nigeria)"
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            style={{ 
+              backgroundColor: 'var(--surface)', 
+              borderColor: 'var(--border)',
+              color: 'var(--foreground)'
+            }}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--primary)' }}></div>
+            <p className="mt-4" style={{ color: 'var(--text-muted)' }}>Loading reviews...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredReviews.map(review => (
+              <article key={review.ID} className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1" style={{ backgroundColor: 'var(--surface)' }}>
+                <div className="aspect-w-3 aspect-h-4 overflow-hidden">
+                  <img
+                    src={getCoverImage(review)}
+                    alt="Book cover"
+                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-6">
+                  <Link href={`/review/${review.ID}`} className="block">
+                    <h2 className="text-xl font-bold mb-2 group-hover:text-purple-600 transition-colors" style={{ color: 'var(--foreground)' }}>{review.title}</h2>
+                    <p dangerouslySetInnerHTML={{ __html: review.excerpt }} className="text-sm mb-4 line-clamp-3" style={{ color: 'var(--text-muted)' }}></p>
+                  </Link>
+                  <div className="flex items-center justify-between text-xs mb-3" style={{ color: 'var(--text-light)' }}>
+                    <span>{new Date(review.date).toLocaleDateString()}</span>
+                    <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                      {Object.values(review.tags).slice(0, 2).map(tag => tag.name).join(', ')}
+                    </span>
+                  </div>
+                  <Link 
+                    href={`/review/${review.ID}`} 
+                    className="inline-flex items-center font-medium text-sm hover:gap-2 transition-all"
+                    style={{ color: 'var(--primary)' }}
+                  >
+                    Read full review 
+                    <span className="ml-1">→</span>
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+        <div className="mt-12 flex justify-center items-center gap-4">
+          <button 
+            onClick={() => setPage(p => Math.max(1, p - 1))} 
+            disabled={page === 1}
+            className="px-6 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
+            style={{ 
+              backgroundColor: page === 1 ? 'var(--border)' : 'var(--primary)',
+              color: page === 1 ? 'var(--text-muted)' : 'white'
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            ← Previous
+          </button>
+          <span className="px-4 py-2 rounded-lg font-medium" style={{ backgroundColor: 'var(--surface-hover)', color: 'var(--foreground)' }}>
+            Page {page} of {totalPages}
+          </span>
+          <button 
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
+            disabled={page === totalPages}
+            className="px-6 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
+            style={{ 
+              backgroundColor: page === totalPages ? 'var(--border)' : 'var(--primary)',
+              color: page === totalPages ? 'var(--text-muted)' : 'white'
+            }}
           >
-            Documentation
-          </a>
+            Next →
+          </button>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

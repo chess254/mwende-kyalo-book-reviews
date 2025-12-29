@@ -28,7 +28,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="min-h-screen mt-12" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <article className="rounded-2xl overflow-hidden shadow-xl" style={{ backgroundColor: 'var(--surface)' }}>
           <header className="p-8 border-b" style={{ borderColor: 'var(--border)' }}>

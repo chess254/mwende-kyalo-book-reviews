@@ -49,13 +49,13 @@ export default function Home() {
     <div className="min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
       <div className="container mx-auto px-4 py-8">
         <header className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Mwende Kyalo Book Reviews</h1>
+          <h1 className="text-5xl font-bold mb-4 mt-8">Mwende Kyalo Book Reviews</h1>
           <p className="text-xl" style={{ color: 'var(--text-muted)' }}>Discover remarkable stories from across the continent</p>
         </header>
         <div className="mb-8 max-w-md mx-auto">
           <input
             type="text"
-            placeholder="Filter by tag (e.g., #Nigeria)"
+            placeholder="Filter by tag (e.g., Nigeria)"
             value={filter}
             onChange={e => setFilter(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"

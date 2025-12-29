@@ -17,6 +17,12 @@ interface ApiResponse {
   posts: Review[];
 }
 
+const decodeEntities = (str: string) => {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = str;
+  return textarea.value;
+};
+
 export default function Home() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [page, setPage] = useState(1);
@@ -84,7 +90,7 @@ export default function Home() {
                 </div>
                 <div className="p-6">
                   <Link href={`/review/${review.ID}`} className="block">
-                    <h2 className="text-xl font-bold mb-2 group-hover:text-purple-600 transition-colors" style={{ color: 'var(--foreground)' }}>{review.title}</h2>
+                    <h2 className="text-xl font-bold mb-2 group-hover:text-purple-600 transition-colors" style={{ color: 'var(--foreground)' }}>{decodeEntities(review.title)}</h2>
                     <p dangerouslySetInnerHTML={{ __html: review.excerpt }} className="text-sm mb-4 line-clamp-3" style={{ color: 'var(--text-muted)' }}></p>
                   </Link>
                   <div className="flex items-center justify-between text-xs mb-3" style={{ color: 'var(--text-light)' }}>
